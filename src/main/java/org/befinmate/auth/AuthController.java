@@ -1,0 +1,76 @@
+package org.befinmate.auth;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.befinmate.common.enums.Role;
+import org.befinmate.dto.request.LoginRequest;
+import org.befinmate.dto.request.RefreshTokenRequest;
+import org.befinmate.dto.request.RegisterRequest;
+import org.befinmate.dto.response.TokenResponse;
+import org.befinmate.entity.User;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final TokenService tokenService;
+
+    @PostMapping("/register")
+    public ResponseEntity<TokenResponse> register(@Valid @RequestBody RegisterRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER) // default
+                .build();
+
+        user = userRepository.save(user);
+
+        TokenResponse tokens = tokenService.generateTokenPair(user);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(tokens);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+
+            TokenResponse tokens = tokenService.generateTokenPair(user);
+
+            return ResponseEntity.ok(tokens);
+
+        } catch (BadCredentialsException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        TokenResponse tokens = tokenService.refreshToken(request);
+        return ResponseEntity.ok(tokens);
+    }
+}

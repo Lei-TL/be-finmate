@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: finmate
+
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+jwt:
+  issuer: "befinmate"
+  secret: ${JWT_SECRET}
+  refresh-secret: ${REFRESH_JWT_SECRET}
+  access-token-expiration-minutes: 120
+  refresh-token-expiration-days: 7
+
