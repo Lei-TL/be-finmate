@@ -1,4 +1,4 @@
-package org.befinmate.auth.implement;
+package org.befinmate.auth.service.implement;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.befinmate.dto.request.UserSettingsSyncRequest;
 import org.befinmate.dto.response.UserSettingsSyncResponse;
 import org.befinmate.entity.UserSettings;
-import org.befinmate.auth.UserSettingsRepository;
-import org.befinmate.auth.UserSettingsSyncService;
+import org.befinmate.auth.repository.UserSettingsRepository;
+import org.befinmate.auth.service.UserSettingsSyncService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

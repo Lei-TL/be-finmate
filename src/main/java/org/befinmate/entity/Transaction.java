@@ -2,33 +2,33 @@ package org.befinmate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.befinmate.common.enums.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
-@Table(name = "transactions")
+@Table(
+        name = "transactions",
+        indexes = {
+                @Index(name = "idx_transactions_user", columnList = "user_id"),
+                @Index(name = "idx_transactions_wallet", columnList = "wallet_id"),
+                @Index(name = "idx_transactions_category", columnList = "category_id"),
+                @Index(name = "idx_transactions_occurred_at", columnList = "occurred_at")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Transaction {
+public class Transaction extends BaseEntity {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false)
     private Wallet wallet;
 
@@ -36,34 +36,23 @@ public class Transaction {
     @JoinColumn(name = "category_id")
     private Category category;
 
-    // INCOME / EXPENSE / TRANSFER
-    @Column(nullable = false, length = 50)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
+    private TransactionType type; // INCOME/EXPENSE/TRANSFER
 
-    @Column(nullable = false, precision = 19, scale = 4)
+    @Column(name = "amount", nullable = false, precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(nullable = false, length = 10)
+    @Column(name = "currency", nullable = false, length = 10)
     private String currency;
 
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "note", length = 1024)
     private String note;
 
-    // Dùng để link 2 chiều của chuyển tiền, nếu anh muốn
+    // Dùng khi là giao dịch chuyển tiền giữa 2 ví
     @Column(name = "transfer_ref_id", length = 100)
     private String transferRefId;
-
-    @Column(nullable = false)
-    private boolean deleted = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
 }

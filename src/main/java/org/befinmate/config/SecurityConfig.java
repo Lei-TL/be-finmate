@@ -4,7 +4,7 @@ import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import lombok.RequiredArgsConstructor;
 import org.befinmate.common.properties.JwtProperties;
 import org.befinmate.auth.CustomJwtAuthenticationConverter;
-import org.befinmate.auth.implement.UserDetailsServiceImpl;
+import org.befinmate.auth.service.implement.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

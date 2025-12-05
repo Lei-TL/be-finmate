@@ -1,7 +1,8 @@
-package org.befinmate.category;
+package org.befinmate.category.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.befinmate.category.service.CategoryService;
 import org.befinmate.dto.request.CategoryRequest;
 import org.befinmate.dto.request.CategorySyncRequest;
 import org.befinmate.dto.response.CategoryResponse;

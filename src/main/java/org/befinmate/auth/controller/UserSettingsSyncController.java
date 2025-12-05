@@ -1,10 +1,10 @@
-package org.befinmate.auth;
+package org.befinmate.auth.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.befinmate.dto.request.UserSettingsSyncRequest;
 import org.befinmate.dto.response.UserSettingsSyncResponse;
-import org.befinmate.auth.UserSettingsSyncService;
+import org.befinmate.auth.service.UserSettingsSyncService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;

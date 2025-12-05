@@ -1,8 +1,8 @@
 package org.befinmate.transaction.implement;
 
 import lombok.RequiredArgsConstructor;
-import org.befinmate.auth.UserRepository;
-import org.befinmate.category.CategoryRepository;
+import org.befinmate.auth.repository.UserRepository;
+import org.befinmate.category.repository.CategoryRepository;
 import org.befinmate.dto.request.TransactionRequest;
 import org.befinmate.dto.request.TransactionSyncItemRequest;
 import org.befinmate.dto.request.TransactionSyncRequest;

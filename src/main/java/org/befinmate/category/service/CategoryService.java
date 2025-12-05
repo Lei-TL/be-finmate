@@ -1,4 +1,4 @@
-package org.befinmate.category;
+package org.befinmate.category.service;
 
 import org.befinmate.dto.request.CategoryRequest;
 import org.befinmate.dto.request.CategorySyncRequest;

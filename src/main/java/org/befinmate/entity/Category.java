@@ -2,57 +2,39 @@ package org.befinmate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
+import org.befinmate.common.enums.TransactionType;
 
 @Entity
-@Table(name = "categories")
+@Table(
+        name = "categories",
+        indexes = {
+                @Index(name = "idx_categories_user", columnList = "user_id"),
+                @Index(name = "idx_categories_user_type", columnList = "user_id, type")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category {
+public class Category extends BaseEntity {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
-
-    /**
-     * user == null => category global (dùng chung)
-     * user != null => category riêng của user
-     */
+    // null -> global category áp dụng cho mọi user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
     // INCOME / EXPENSE / TRANSFER
-    @Column(nullable = false, length = 50)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
+    private TransactionType type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-
-    @Column(length = 100)
+    @Column(name = "icon", length = 100)
     private String icon;
 
-    @Column(nullable = false)
-    private boolean deleted = false;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Column(name = "display_order")
+    private Integer displayOrder;
 }

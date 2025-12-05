@@ -1,4 +1,4 @@
-package org.befinmate.auth;
+package org.befinmate.auth.service;
 
 import org.befinmate.dto.request.UserSettingsSyncRequest;
 import org.befinmate.dto.response.UserSettingsSyncResponse;

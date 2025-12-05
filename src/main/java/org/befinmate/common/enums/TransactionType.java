@@ -1,6 +1,6 @@
 package org.befinmate.common.enums;
 
-public enum CategoryType {
+public enum TransactionType {
 
     INCOME,
     EXPENSE,

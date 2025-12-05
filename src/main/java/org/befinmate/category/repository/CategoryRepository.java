@@ -1,4 +1,4 @@
-package org.befinmate.category;
+package org.befinmate.category.repository;
 
 import org.befinmate.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;

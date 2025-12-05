@@ -1,15 +1,17 @@
-package org.befinmate.auth.implement;
+package org.befinmate.auth.service.implement;
 
 import lombok.RequiredArgsConstructor;
+import org.befinmate.auth.domain.UserAccount;
+import org.befinmate.auth.mapper.UserAccountMapper;
 import org.befinmate.common.enums.Role;
 import org.befinmate.dto.request.LoginRequest;
 import org.befinmate.dto.request.RefreshTokenRequest;
 import org.befinmate.dto.request.RegisterRequest;
 import org.befinmate.dto.response.TokenResponse;
 import org.befinmate.entity.User;
-import org.befinmate.auth.UserRepository;
-import org.befinmate.auth.AuthService;
-import org.befinmate.auth.TokenService;
+import org.befinmate.auth.repository.UserRepository;
+import org.befinmate.auth.service.AuthService;
+import org.befinmate.auth.service.TokenService;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,17 +29,21 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        User userEntity = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        UserAccount user = UserAccountMapper.toDomain(userEntity);
+
+        user.ensureActive();
+
+        if (!passwordEncoder.matches(request.getPassword(), userEntity.getPassword())) {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        user.setUpdatedAt(Timestamp.from(Instant.now()));
-        userRepository.save(user);
+        userEntity.setUpdatedAt(Timestamp.from(Instant.now()));
+        userRepository.save(userEntity);
 
-        return tokenService.generateTokenPair(user);
+        return tokenService.generateTokenPair(userEntity);
     }
 
     @Override

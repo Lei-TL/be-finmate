@@ -1,4 +1,4 @@
-package org.befinmate.auth.implement;
+package org.befinmate.auth.service.implement;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -6,8 +6,8 @@ import org.befinmate.common.properties.JwtProperties;
 import org.befinmate.dto.request.RefreshTokenRequest;
 import org.befinmate.dto.response.TokenResponse;
 import org.befinmate.entity.User;
-import org.befinmate.auth.UserRepository;
-import org.befinmate.auth.TokenService;
+import org.befinmate.auth.repository.UserRepository;
+import org.befinmate.auth.service.TokenService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;

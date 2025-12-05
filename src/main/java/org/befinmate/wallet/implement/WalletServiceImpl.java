@@ -8,7 +8,7 @@ import org.befinmate.dto.response.WalletResponse;
 import org.befinmate.dto.response.WalletSyncResponse;
 import org.befinmate.entity.User;
 import org.befinmate.entity.Wallet;
-import org.befinmate.auth.UserRepository;
+import org.befinmate.auth.repository.UserRepository;
 import org.befinmate.wallet.WalletRepository;
 import org.befinmate.wallet.WalletService;
 import org.springframework.cache.annotation.CacheEvict;

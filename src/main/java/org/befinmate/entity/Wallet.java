@@ -2,61 +2,40 @@ package org.befinmate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 @Entity
-@Table(name = "wallets")
+@Table(
+        name = "wallets",
+        indexes = {
+                @Index(name = "idx_wallets_user", columnList = "user_id"),
+                @Index(name = "idx_wallets_user_default", columnList = "user_id, is_default")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Wallet {
+public class Wallet extends BaseEntity {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
-
-    // Chủ ví
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false, length = 255)
+    @Column(name = "name", nullable = false, length = 255)
     private String name;
 
-    // CASH, BANK, E_WALLET, SAVING...
-    @Column(nullable = false, length = 50)
-    private String type;
-
-    @Column(nullable = false, length = 10)
-    private String currency; // VND, USD...
-
     @Column(name = "initial_balance", nullable = false, precision = 19, scale = 4)
-    private BigDecimal initialBalance;
+    private BigDecimal initialBalance = BigDecimal.ZERO;
 
-    @Column(nullable = false)
-    private boolean archived = false;
+    @Column(name = "current_balance", nullable = false, precision = 19, scale = 4)
+    private BigDecimal currentBalance = BigDecimal.ZERO;
 
-    // Soft delete cho sync/offline
-    @Column(nullable = false)
-    private boolean deleted = false;
+    @Column(name = "is_default", nullable = false)
+    private boolean isDefault = false;
 
-    @Column(length = 20)
-    private String color; // mã màu hex nếu muốn
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private Instant createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Column(name = "color", length = 20)
+    private String color; // Mã màu hex nếu muốn
 }

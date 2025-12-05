@@ -3,33 +3,31 @@ package org.befinmate.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.befinmate.common.enums.Role;
-import org.hibernate.annotations.GenericGenerator;
 
-import java.sql.Timestamp;
+import java.util.List;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        indexes = {
+                @Index(name = "idx_users_email", columnList = "email", unique = true)
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
+public class User extends BaseEntity {
 
-    @Id
-    @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", updatable = false, nullable = false)
-    private String id;
-
-    @Column(unique = true, nullable = false, length = 255)
+    @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "role", nullable = false, length = 50)
     private Role role;
 
     @Column(name = "full_name", length = 255)
@@ -38,10 +36,23 @@ public class User {
     @Column(name = "avatar_url", length = 1024)
     private String avatarUrl;
 
-    @Column
-    private Timestamp createdAt;
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 
-    @Column
-    private Timestamp updatedAt;
 
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private UserSettings settings;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Wallet> wallets;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Category> categories;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Budget> budgets;
 }

@@ -1,4 +1,4 @@
-package org.befinmate.auth;
+package org.befinmate.auth.repository;
 
 import org.befinmate.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

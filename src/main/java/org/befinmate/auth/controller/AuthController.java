@@ -1,7 +1,9 @@
-package org.befinmate.auth;
+package org.befinmate.auth.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.befinmate.auth.service.TokenService;
+import org.befinmate.auth.repository.UserRepository;
 import org.befinmate.common.enums.Role;
 import org.befinmate.dto.request.LoginRequest;
 import org.befinmate.dto.request.RefreshTokenRequest;

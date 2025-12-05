@@ -2,44 +2,27 @@ package org.befinmate.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.Instant;
 
 @Entity
-@Table(name = "user_settings")
+@Table(
+        name = "user_settings",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_settings_user_id", columnNames = "user_id")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserSettings {
+public class UserSettings extends BaseEntity {
 
-    @Id
-    @Column(name = "user_id")
-    private String userId;
-
-    // Nếu anh muốn map quan hệ 1-1 với User:
-    // Có thể dùng @OneToOne + @MapsId, nếu thấy phức tạp thì bỏ block này đi cũng được.
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    /**
-     * JSON cấu hình của user, ví dụ:
-     * {
-     *   "fullName": "Nguyen Van A",
-     *   "defaultCurrency": "VND",
-     *   "language": "vi",
-     *   "timeZone": "Asia/Ho_Chi_Minh",
-     *   "theme": "dark"
-     * }
-     */
-    @Lob
-    @Column(name = "settings_json", columnDefinition = "TEXT")
-    private String settingsJson;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private Instant updatedAt;
+    @Lob
+    @Column(name = "settings_json", columnDefinition = "TEXT", nullable = false)
+    private String settingsJson;
 }

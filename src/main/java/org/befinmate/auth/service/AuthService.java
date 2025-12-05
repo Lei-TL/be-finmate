@@ -1,4 +1,4 @@
-package org.befinmate.auth;
+package org.befinmate.auth.service;
 
 import org.befinmate.dto.request.LoginRequest;
 import org.befinmate.dto.request.RefreshTokenRequest;

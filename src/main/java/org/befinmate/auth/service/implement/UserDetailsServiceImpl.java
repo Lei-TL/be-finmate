@@ -1,8 +1,8 @@
-package org.befinmate.auth.implement;
+package org.befinmate.auth.service.implement;
 
 import lombok.RequiredArgsConstructor;
 import org.befinmate.entity.User;
-import org.befinmate.auth.UserRepository;
+import org.befinmate.auth.repository.UserRepository;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
