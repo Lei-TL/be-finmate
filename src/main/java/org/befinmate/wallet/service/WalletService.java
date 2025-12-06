@@ -1,4 +1,4 @@
-package org.befinmate.wallet;
+package org.befinmate.wallet.service;
 
 import org.befinmate.dto.request.WalletRequest;
 import org.befinmate.dto.request.WalletSyncRequest;

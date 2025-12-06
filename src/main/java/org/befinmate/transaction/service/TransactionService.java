@@ -1,4 +1,4 @@
-package org.befinmate.transaction;
+package org.befinmate.transaction.service;
 
 import org.befinmate.dto.request.TransactionRequest;
 import org.befinmate.dto.request.TransactionSyncRequest;

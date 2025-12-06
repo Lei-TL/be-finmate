@@ -1,4 +1,4 @@
-package org.befinmate.transaction.implement;
+package org.befinmate.transaction.service.implement;
 
 import lombok.RequiredArgsConstructor;
 import org.befinmate.auth.repository.UserRepository;
@@ -9,9 +9,9 @@ import org.befinmate.dto.request.TransactionSyncRequest;
 import org.befinmate.dto.response.TransactionResponse;
 import org.befinmate.dto.response.TransactionSyncResponse;
 import org.befinmate.entity.*;
-import org.befinmate.transaction.TransactionRepository;
-import org.befinmate.transaction.TransactionService;
-import org.befinmate.wallet.WalletRepository;
+import org.befinmate.transaction.repository.TransactionRepository;
+import org.befinmate.transaction.service.TransactionService;
+import org.befinmate.wallet.repository.WalletRepository;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package org.befinmate.friend.implement;
+package org.befinmate.friend.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.befinmate.auth.repository.UserRepository;

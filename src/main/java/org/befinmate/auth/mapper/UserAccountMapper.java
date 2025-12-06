@@ -4,9 +4,6 @@ import org.befinmate.auth.domain.UserAccount;
 import org.befinmate.common.enums.Role;
 import org.befinmate.entity.User;
 
-/**
- * Mapper chuyển giữa Entity  <-> Domain model.
- */
 public class UserAccountMapper {
 
     public static UserAccount toDomain(User entity) {

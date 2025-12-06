@@ -1,4 +1,4 @@
-package org.befinmate.wallet;
+package org.befinmate.wallet.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import org.befinmate.dto.request.WalletRequest;
 import org.befinmate.dto.request.WalletSyncRequest;
 import org.befinmate.dto.response.WalletResponse;
 import org.befinmate.dto.response.WalletSyncResponse;
-import org.befinmate.wallet.WalletService;
+import org.befinmate.wallet.service.WalletService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

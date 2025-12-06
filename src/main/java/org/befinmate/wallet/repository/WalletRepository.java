@@ -1,4 +1,4 @@
-package org.befinmate.wallet;
+package org.befinmate.wallet.repository;
 
 import org.befinmate.entity.Wallet;
 import org.springframework.data.jpa.repository.JpaRepository;

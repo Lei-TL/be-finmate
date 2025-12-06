@@ -1,4 +1,4 @@
-package org.befinmate.transaction;
+package org.befinmate.transaction.repository;
 
 import org.befinmate.entity.Transaction;
 import org.springframework.data.domain.Page;

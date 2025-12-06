@@ -1,4 +1,4 @@
-package org.befinmate.wallet.implement;
+package org.befinmate.wallet.service.implement;
 
 import lombok.RequiredArgsConstructor;
 import org.befinmate.dto.request.WalletRequest;
@@ -9,8 +9,8 @@ import org.befinmate.dto.response.WalletSyncResponse;
 import org.befinmate.entity.User;
 import org.befinmate.entity.Wallet;
 import org.befinmate.auth.repository.UserRepository;
-import org.befinmate.wallet.WalletRepository;
-import org.befinmate.wallet.WalletService;
+import org.befinmate.wallet.repository.WalletRepository;
+import org.befinmate.wallet.service.WalletService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

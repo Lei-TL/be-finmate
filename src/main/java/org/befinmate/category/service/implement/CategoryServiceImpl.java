@@ -1,4 +1,4 @@
-package org.befinmate.category.implement;
+package org.befinmate.category.service.implement;
 
 import lombok.RequiredArgsConstructor;
 import org.befinmate.dto.request.CategoryRequest;

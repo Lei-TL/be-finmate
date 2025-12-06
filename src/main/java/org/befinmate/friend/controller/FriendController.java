@@ -1,4 +1,4 @@
-package org.befinmate.friend;
+package org.befinmate.friend.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

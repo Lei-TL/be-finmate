@@ -1,4 +1,4 @@
-package org.befinmate.transaction;
+package org.befinmate.transaction.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -6,7 +6,7 @@ import org.befinmate.dto.request.TransactionRequest;
 import org.befinmate.dto.request.TransactionSyncRequest;
 import org.befinmate.dto.response.TransactionResponse;
 import org.befinmate.dto.response.TransactionSyncResponse;
-import org.befinmate.transaction.TransactionService;
+import org.befinmate.transaction.service.TransactionService;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
