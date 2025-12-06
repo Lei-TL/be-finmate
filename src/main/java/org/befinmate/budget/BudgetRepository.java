@@ -1,4 +1,4 @@
-package org.befinmate.repository;
+package org.befinmate.budget;
 
 import org.befinmate.entity.Budget;
 import org.springframework.data.jpa.repository.JpaRepository;
