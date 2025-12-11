@@ -31,10 +31,20 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getCategories(
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(required = false) String type
     ) {
         String userId = getUserId(jwt);
-        return ResponseEntity.ok(categoryService.getCategoriesForUser(userId));
+        List<CategoryResponse> categories = categoryService.getCategoriesForUser(userId);
+        
+        // Filter by type if provided
+        if (type != null && !type.isEmpty()) {
+            categories = categories.stream()
+                    .filter(c -> type.equalsIgnoreCase(c.getType()))
+                    .toList();
+        }
+        
+        return ResponseEntity.ok(categories);
     }
 
     @PostMapping

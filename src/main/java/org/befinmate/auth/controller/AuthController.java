@@ -33,10 +33,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
+        // Lưu đầy đủ thông tin từ request
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER) // default
+                .fullName(request.getFullName()) // Lưu đúng giá trị được gửi lên từ frontend
+                .avatarUrl(request.getAvatarUrl()) // Lưu đúng giá trị được gửi lên từ frontend
+                .enabled(true)
                 .build();
 
         user = userRepository.save(user);
