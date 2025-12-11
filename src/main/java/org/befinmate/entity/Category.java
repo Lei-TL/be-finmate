@@ -32,6 +32,10 @@ public class Category extends BaseEntity {
     @Column(name = "type", nullable = false, length = 20)
     private TransactionType type;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
+
     @Column(name = "icon", length = 100)
     private String icon;
 

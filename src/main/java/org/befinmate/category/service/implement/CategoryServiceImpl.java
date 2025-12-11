@@ -6,6 +6,7 @@ import org.befinmate.dto.request.CategorySyncItemRequest;
 import org.befinmate.dto.request.CategorySyncRequest;
 import org.befinmate.dto.response.CategoryResponse;
 import org.befinmate.dto.response.CategorySyncResponse;
+import org.befinmate.common.enums.TransactionType;
 import org.befinmate.entity.Category;
 import org.befinmate.entity.User;
 import org.befinmate.category.repository.CategoryRepository;
@@ -39,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
         return CategoryResponse.builder()
                 .id(c.getId())
                 .name(c.getName())
-                .type(c.getType())
+                .type(c.getType() != null ? c.getType().name() : null)
                 .parentId(c.getParent() != null ? c.getParent().getId() : null)
                 .icon(c.getIcon())
                 .deleted(c.isDeleted())
@@ -75,11 +76,11 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = Category.builder()
                 .user(user) // category riêng của user
                 .name(request.getName())
-                .type(request.getType())
+                .type(TransactionType.valueOf(request.getType()))
                 .parent(parent)
                 .icon(request.getIcon())
-                .deleted(false)
                 .build();
+        category.setDeleted(false);
 
         Category saved = categoryRepository.save(category);
         return toResponse(saved);
@@ -100,7 +101,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category parent = getParentIfValid(request.getParentId(), userId);
 
         category.setName(request.getName());
-        category.setType(request.getType());
+        category.setType(TransactionType.valueOf(request.getType()));
         category.setParent(parent);
         category.setIcon(request.getIcon());
 
@@ -166,6 +167,10 @@ public class CategoryServiceImpl implements CategoryService {
             }
 
             if (category == null) {
+                // Kiểm tra các trường bắt buộc khi tạo mới
+                if (item.getName() == null || item.getName().trim().isEmpty() || item.getType() == null) {
+                    continue; // Bỏ qua nếu thiếu trường bắt buộc khi tạo mới
+                }
                 category = new Category();
                 category.setId(item.getId() != null ? item.getId() : UUID.randomUUID().toString());
                 category.setUser(user);
@@ -173,8 +178,20 @@ public class CategoryServiceImpl implements CategoryService {
 
             // Nếu muốn last-write-wins cứng hơn, có thể so sánh item.updatedAt với category.updatedAt ở đây
 
-            category.setName(item.getName() != null ? item.getName() : category.getName());
-            category.setType(item.getType() != null ? item.getType() : category.getType());
+            if (item.getName() != null) {
+                category.setName(item.getName());
+            } else if (category.getName() == null) {
+                continue; // Bỏ qua nếu cả item và category đều không có name
+            }
+            if (item.getType() != null) {
+                try {
+                    category.setType(TransactionType.valueOf(item.getType()));
+                } catch (IllegalArgumentException e) {
+                    continue; // Bỏ qua nếu type không hợp lệ
+                }
+            } else if (category.getType() == null) {
+                continue; // Bỏ qua nếu không có type (required field)
+            }
             category.setIcon(item.getIcon() != null ? item.getIcon() : category.getIcon());
             category.setDeleted(item.isDeleted());
 

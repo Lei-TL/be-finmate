@@ -16,7 +16,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 
 @Service
@@ -40,7 +39,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadCredentialsException("Invalid email or password");
         }
 
-        userEntity.setUpdatedAt(Timestamp.from(Instant.now()));
+        userEntity.setUpdatedAt(Instant.now());
         userRepository.save(userEntity);
 
         return tokenService.generateTokenPair(userEntity);
@@ -52,14 +51,10 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalStateException("Email already in use");
         }
 
-        Timestamp now = Timestamp.from(Instant.now());
-
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
-                .createdAt(now)
-                .updatedAt(now)
                 .build();
 
         userRepository.save(user);

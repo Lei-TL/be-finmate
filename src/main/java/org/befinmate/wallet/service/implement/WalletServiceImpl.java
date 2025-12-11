@@ -88,9 +88,9 @@ public class WalletServiceImpl implements WalletService {
                 .currency(request.getCurrency())
                 .initialBalance(request.getInitialBalance())
                 .archived(Boolean.TRUE.equals(request.getArchived()))
-                .deleted(false)
                 .color(request.getColor())
                 .build();
+        wallet.setDeleted(false);
 
         Wallet saved = walletRepository.save(wallet);
         return toResponse(saved);
@@ -185,11 +185,19 @@ public class WalletServiceImpl implements WalletService {
                 wallet.setUser(user);
                 // default
                 wallet.setInitialBalance(BigDecimal.ZERO);
+                // Đảm bảo name không null khi tạo mới (required field)
+                if (item.getName() == null || item.getName().trim().isEmpty()) {
+                    continue; // Bỏ qua item nếu thiếu name khi tạo mới
+                }
             }
 
             // last-write-wins đơn giản:
             // nếu muốn cứng hơn, có thể so sánh item.updatedAt với wallet.updatedAt
-            wallet.setName(item.getName() != null ? item.getName() : wallet.getName());
+            if (item.getName() != null) {
+                wallet.setName(item.getName());
+            } else if (wallet.getName() == null) {
+                continue; // Bỏ qua nếu cả item và wallet đều không có name
+            }
             wallet.setType(item.getType() != null ? item.getType() : wallet.getType());
             wallet.setCurrency(item.getCurrency() != null ? item.getCurrency() : wallet.getCurrency());
             if (item.getInitialBalance() != null) {

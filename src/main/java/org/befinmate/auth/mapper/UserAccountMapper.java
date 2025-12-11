@@ -14,7 +14,7 @@ public class UserAccountMapper {
                 .email(entity.getEmail())
                 .passwordHash(entity.getPassword())
                 .role(entity.getRole())
-                .active(entity.isActive())   // nếu User chưa có active thì tạm hard-code true
+                .active(entity.isEnabled())   // map từ User.enabled sang UserAccount.active
                 .build();
     }
 
@@ -26,7 +26,7 @@ public class UserAccountMapper {
         user.setEmail(domain.getEmail());
         user.setPassword(domain.getPasswordHash());
         user.setRole(domain.getRole() != null ? domain.getRole() : Role.USER);
-        user.setActive(domain.isActive());
+        user.setEnabled(domain.isActive());  // map từ UserAccount.active sang User.enabled
         return user;
     }
 }
