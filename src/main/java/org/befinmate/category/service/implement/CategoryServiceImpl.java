@@ -43,42 +43,44 @@ public class CategoryServiceImpl implements CategoryService {
                 .type(c.getType() != null ? c.getType().name() : null)
                 .parentId(c.getParent() != null ? c.getParent().getId() : null)
                 .icon(c.getIcon())
+                .displayOrder(c.getDisplayOrder())
                 .deleted(c.isDeleted())
                 .createdAt(c.getCreatedAt())
                 .updatedAt(c.getUpdatedAt())
                 .build();
     }
 
-    private Category getParentIfValid(String parentId, String userId) {
+    private Category getParentIfValid(String parentId) {
         if (parentId == null) return null;
-        return categoryRepository.findByIdAndUserIdOrGlobal(parentId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Parent category not found or not accessible"));
+        return categoryRepository.findById(parentId)
+                .orElseThrow(() -> new IllegalArgumentException("Parent category not found"));
     }
 
     // ========= CRUD =========
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(cacheNames = "categories", key = "#userId")
+    @Cacheable(cacheNames = "categories")
     public List<CategoryResponse> getCategoriesForUser(String userId) {
-        return categoryRepository.findActiveByUserOrGlobal(userId)
+        // ✅ Trả về tất cả categories chung cho hệ thống
+        return categoryRepository.findActiveCategories()
                 .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
-    @CacheEvict(cacheNames = "categories", key = "#userId")
+    @CacheEvict(cacheNames = "categories")
     public CategoryResponse createCategory(String userId, CategoryRequest request) {
-        User user = getUserOrThrow(userId);
-        Category parent = getParentIfValid(request.getParentId(), userId);
+        // ✅ Chỉ admin mới có thể tạo category (có thể thêm check role ở đây)
+        Category parent = getParentIfValid(request.getParentId());
 
         Category category = Category.builder()
-                .user(user) // category riêng của user
                 .name(request.getName())
                 .type(TransactionType.valueOf(request.getType()))
                 .parent(parent)
                 .icon(request.getIcon())
+                .displayOrder(request.getDisplayOrder())
                 .build();
         category.setDeleted(false);
 
@@ -87,33 +89,36 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "categories", key = "#userId")
+    @CacheEvict(cacheNames = "categories")
     public CategoryResponse updateCategory(String userId, String categoryId, CategoryRequest request) {
-
-        // Chỉ cho phép sửa category thuộc user (không sửa global)
-        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found or not owned by user"));
+        // ✅ Chỉ admin mới có thể sửa category (có thể thêm check role ở đây)
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
         if (category.isDeleted()) {
             throw new IllegalArgumentException("Category has been deleted");
         }
 
-        Category parent = getParentIfValid(request.getParentId(), userId);
+        Category parent = getParentIfValid(request.getParentId());
 
         category.setName(request.getName());
         category.setType(TransactionType.valueOf(request.getType()));
         category.setParent(parent);
         category.setIcon(request.getIcon());
+        if (request.getDisplayOrder() != null) {
+            category.setDisplayOrder(request.getDisplayOrder());
+        }
 
         Category saved = categoryRepository.save(category);
         return toResponse(saved);
     }
 
     @Override
-    @CacheEvict(cacheNames = "categories", key = "#userId")
+    @CacheEvict(cacheNames = "categories")
     public void deleteCategory(String userId, String categoryId) {
-        Category category = categoryRepository.findByIdAndUserId(categoryId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found or not owned by user"));
+        // ✅ Chỉ admin mới có thể xóa category (có thể thêm check role ở đây)
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
 
         category.setDeleted(true);
         categoryRepository.save(category);
@@ -127,11 +132,11 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> categories;
 
         if (since == null) {
-            // lần đầu: gửi toàn bộ categories không deleted (global + của user)
-            categories = categoryRepository.findActiveByUserOrGlobal(userId);
+            // ✅ Lần đầu: gửi toàn bộ categories không deleted (chung cho hệ thống)
+            categories = categoryRepository.findActiveCategories();
         } else {
-            // incremental: gửi mọi bản ghi (kể cả deleted) được cập nhật sau mốc since
-            categories = categoryRepository.findByUserOrGlobalUpdatedAtAfter(userId, since);
+            // ✅ Incremental: gửi mọi bản ghi (kể cả deleted) được cập nhật sau mốc since
+            categories = categoryRepository.findByUpdatedAtAfter(since);
         }
 
         List<CategoryResponse> items = categories.stream()
@@ -146,65 +151,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    @CacheEvict(cacheNames = "categories", key = "#userId")
+    @CacheEvict(cacheNames = "categories")
     public CategorySyncResponse syncPush(String userId, CategorySyncRequest request) {
-
-        User user = getUserOrThrow(userId);
-
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            return CategorySyncResponse.builder()
-                    .items(List.of())
-                    .build();
-        }
-
-        for (CategorySyncItemRequest item : request.getItems()) {
-
-            // chỉ sync category của user; không ghi đè category global
-            Category category = null;
-
-            if (item.getId() != null) {
-                category = categoryRepository.findByIdAndUserId(item.getId(), userId).orElse(null);
-            }
-
-            if (category == null) {
-                // Kiểm tra các trường bắt buộc khi tạo mới
-                if (item.getName() == null || item.getName().trim().isEmpty() || item.getType() == null) {
-                    continue; // Bỏ qua nếu thiếu trường bắt buộc khi tạo mới
-                }
-                category = new Category();
-                category.setId(item.getId() != null ? item.getId() : UUID.randomUUID().toString());
-                category.setUser(user);
-            }
-
-            // Nếu muốn last-write-wins cứng hơn, có thể so sánh item.updatedAt với category.updatedAt ở đây
-
-            if (item.getName() != null) {
-                category.setName(item.getName());
-            } else if (category.getName() == null) {
-                continue; // Bỏ qua nếu cả item và category đều không có name
-            }
-            if (item.getType() != null) {
-                try {
-                    category.setType(TransactionType.valueOf(item.getType()));
-                } catch (IllegalArgumentException e) {
-                    continue; // Bỏ qua nếu type không hợp lệ
-                }
-            } else if (category.getType() == null) {
-                continue; // Bỏ qua nếu không có type (required field)
-            }
-            category.setIcon(item.getIcon() != null ? item.getIcon() : category.getIcon());
-            category.setDeleted(item.isDeleted());
-
-            if (item.getParentId() != null) {
-                Category parent = getParentIfValid(item.getParentId(), userId);
-                category.setParent(parent);
-            }
-
-            categoryRepository.save(category);
-        }
-
-        // Sau sync có thể trả lại list active cho client
-        List<Category> categories = categoryRepository.findActiveByUserOrGlobal(userId);
+        // ✅ Categories là chung cho hệ thống, không cho phép sync từ client
+        // Chỉ admin mới có thể tạo/sửa/xóa categories
+        // Client chỉ có thể pull categories
+        
+        // Trả về danh sách categories hiện tại
+        List<Category> categories = categoryRepository.findActiveCategories();
         List<CategoryResponse> responses = categories.stream()
                 .map(this::toResponse)
                 .toList();

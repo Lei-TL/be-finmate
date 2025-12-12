@@ -13,6 +13,7 @@ public class TransactionResponse {
     private String id;
     private String walletId;
     private String categoryId;
+    private String categoryName; // ✅ Thêm categoryName để frontend không cần lookup
     private String type;
     private BigDecimal amount;
     private String currency;

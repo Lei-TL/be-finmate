@@ -17,7 +17,7 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
 jwt:
-  issuer: "befinmate"
+  issuer: "http://localhost:8080"  # Must be a valid URL for Spring Security OAuth2
   secret: ${JWT_SECRET}
   refresh-secret: ${REFRESH_JWT_SECRET}
   access-token-expiration-minutes: 120

@@ -50,8 +50,9 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Transaction> transactions;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private List<Category> categories;
+    // ✅ Categories không còn gán user nữa (chung cho hệ thống)
+    // @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    // private List<Category> categories;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Budget> budgets;

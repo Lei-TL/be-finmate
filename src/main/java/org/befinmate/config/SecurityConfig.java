@@ -109,6 +109,7 @@ public class SecurityConfig {
     @Qualifier("refreshTokenDecoder")
     public JwtDecoder refreshTokenDecoder() {
         SecretKey key = refreshSecretKey();
+        // Don't validate issuer as URL to support backward compatibility with old tokens
         return NimbusJwtDecoder.withSecretKey(key)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
@@ -123,13 +124,25 @@ public class SecurityConfig {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain authChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain authChain(
+            HttpSecurity http,
+            @Qualifier("accessTokenDecoder") JwtDecoder accessTokenDecoder,
+            JwtAuthenticationConverter jwtAuthenticationConverter
+    ) throws Exception {
         http
                 .securityMatcher("/auth/**")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
-                .oauth2ResourceServer(AbstractHttpConfigurer::disable);
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/me").authenticated() // ✅ /auth/me cần authentication
+                        .anyRequest().permitAll()
+                )
+                .oauth2ResourceServer(oauth -> oauth
+                        .jwt(jwt -> jwt
+                                .decoder(accessTokenDecoder)
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+                        )
+                );
 
         return http.build();
     }

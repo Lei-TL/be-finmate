@@ -46,7 +46,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Category getCategoryIfValid(String userId, String categoryId) {
         if (categoryId == null) return null;
-        return categoryRepository.findByIdAndUserIdOrGlobal(categoryId, userId)
+        // ✅ Categories giờ là global, không cần check userId
+        return categoryRepository.findById(categoryId)
+                .filter(c -> !c.isDeleted()) // Chỉ lấy category chưa bị xóa
                 .orElseThrow(() -> new IllegalArgumentException("Category not found or not accessible"));
     }
 
@@ -55,6 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .id(t.getId())
                 .walletId(t.getWallet() != null ? t.getWallet().getId() : null)
                 .categoryId(t.getCategory() != null ? t.getCategory().getId() : null)
+                .categoryName(t.getCategory() != null ? t.getCategory().getName() : null) // ✅ Thêm categoryName
                 .type(t.getType() != null ? t.getType().name() : null)
                 .amount(t.getAmount())
                 .currency(t.getCurrency())

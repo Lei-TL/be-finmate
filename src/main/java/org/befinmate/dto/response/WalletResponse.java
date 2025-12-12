@@ -15,6 +15,7 @@ public class WalletResponse {
     private String type;
     private String currency;
     private BigDecimal initialBalance;
+    private BigDecimal currentBalance;
     private boolean archived;
     private boolean deleted;
     private String color;

@@ -17,4 +17,6 @@ public class CategoryRequest {
     private String parentId;
 
     private String icon;
+    
+    private Integer displayOrder;
 }

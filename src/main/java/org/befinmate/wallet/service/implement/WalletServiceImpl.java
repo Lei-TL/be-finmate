@@ -43,6 +43,7 @@ public class WalletServiceImpl implements WalletService {
                 .type(w.getType())
                 .currency(w.getCurrency())
                 .initialBalance(w.getInitialBalance())
+                .currentBalance(w.getCurrentBalance()) // ✅ Thêm currentBalance
                 .archived(w.isArchived())
                 .deleted(w.isDeleted())
                 .color(w.getColor())
