@@ -14,6 +14,7 @@ public class CategoryResponse {
     private String type;
     private String parentId;
     private String icon;
+    private Integer displayOrder;
     private boolean deleted;
     private Instant createdAt;
     private Instant updatedAt;

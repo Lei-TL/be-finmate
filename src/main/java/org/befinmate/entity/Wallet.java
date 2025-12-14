@@ -27,6 +27,12 @@ public class Wallet extends BaseEntity {
     @Column(name = "name", nullable = false, length = 255)
     private String name;
 
+    @Column(name = "type", length = 50)
+    private String type;
+
+    @Column(name = "currency", length = 10)
+    private String currency;
+
     @Column(name = "initial_balance", nullable = false, precision = 19, scale = 4)
     private BigDecimal initialBalance = BigDecimal.ZERO;
 
@@ -35,6 +41,9 @@ public class Wallet extends BaseEntity {
 
     @Column(name = "is_default", nullable = false)
     private boolean isDefault = false;
+
+    @Column(name = "archived", nullable = false)
+    private boolean archived = false;
 
     @Column(name = "color", length = 20)
     private String color; // Mã màu hex nếu muốn

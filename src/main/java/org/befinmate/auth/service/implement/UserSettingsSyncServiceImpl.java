@@ -5,9 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.befinmate.dto.request.UserSettingsSyncRequest;
 import org.befinmate.dto.response.UserSettingsSyncResponse;
+import org.befinmate.entity.User;
 import org.befinmate.entity.UserSettings;
+import org.befinmate.auth.repository.UserRepository;
 import org.befinmate.auth.repository.UserSettingsRepository;
 import org.befinmate.auth.service.UserSettingsSyncService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ import java.util.Optional;
 public class UserSettingsSyncServiceImpl implements UserSettingsSyncService {
 
     private final UserSettingsRepository userSettingsRepository;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -57,11 +61,15 @@ public class UserSettingsSyncServiceImpl implements UserSettingsSyncService {
 
         String jsonString = writeJsonSafe(data);
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        
         UserSettings settings = userSettingsRepository.findById(userId)
-                .orElseGet(() -> UserSettings.builder()
-                        .userId(userId)
-                        .build()
-                );
+                .orElseGet(() -> {
+                    UserSettings newSettings = new UserSettings();
+                    newSettings.setUser(user);
+                    return newSettings;
+                });
 
         settings.setSettingsJson(jsonString);
 

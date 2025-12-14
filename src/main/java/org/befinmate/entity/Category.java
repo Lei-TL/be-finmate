@@ -8,8 +8,7 @@ import org.befinmate.common.enums.TransactionType;
 @Table(
         name = "categories",
         indexes = {
-                @Index(name = "idx_categories_user", columnList = "user_id"),
-                @Index(name = "idx_categories_user_type", columnList = "user_id, type")
+                @Index(name = "idx_categories_type", columnList = "type")
         }
 )
 @Getter
@@ -19,18 +18,18 @@ import org.befinmate.common.enums.TransactionType;
 @Builder
 public class Category extends BaseEntity {
 
-    // null -> global category áp dụng cho mọi user
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @Column(name = "name", nullable = false, length = 255)
+    // ✅ Categories là chung cho cả hệ thống, không gán user
+    @Column(name = "name", nullable = false, length = 255, unique = true)
     private String name;
 
     // INCOME / EXPENSE / TRANSFER
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private TransactionType type;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Category parent;
 
     @Column(name = "icon", length = 100)
     private String icon;

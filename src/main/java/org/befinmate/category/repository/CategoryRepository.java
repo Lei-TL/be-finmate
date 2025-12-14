@@ -11,43 +11,30 @@ import java.util.Optional;
 
 public interface CategoryRepository extends JpaRepository<Category, String> {
 
-    // List category: global (user is null) + của user, không deleted
+    // ✅ List category: tất cả categories chung cho hệ thống, không deleted
     @Query("""
            SELECT c
            FROM Category c
-           WHERE (c.user.id = :userId OR c.user IS NULL)
+           WHERE c.deleted = false
+           ORDER BY c.displayOrder ASC, c.name ASC
+           """)
+    List<Category> findActiveCategories();
+
+    // ✅ Lấy categories theo type
+    @Query("""
+           SELECT c
+           FROM Category c
+           WHERE c.type = :type
              AND c.deleted = false
-           ORDER BY c.name ASC
+           ORDER BY c.displayOrder ASC, c.name ASC
            """)
-    List<Category> findActiveByUserOrGlobal(@Param("userId") String userId);
+    List<Category> findByType(@Param("type") org.befinmate.common.enums.TransactionType type);
 
-    // Dùng cho sync: lấy mọi category (kể cả deleted) được cập nhật sau mốc since
+    // ✅ Dùng cho sync: lấy mọi category (kể cả deleted) được cập nhật sau mốc since
     @Query("""
            SELECT c
            FROM Category c
-           WHERE (c.user.id = :userId OR c.user IS NULL)
-             AND c.updatedAt > :since
+           WHERE c.updatedAt > :since
            """)
-    List<Category> findByUserOrGlobalUpdatedAtAfter(@Param("userId") String userId,
-                                                    @Param("since") Instant since);
-
-    // Đọc 1 category: có thể là của user hoặc global
-    @Query("""
-           SELECT c
-           FROM Category c
-           WHERE c.id = :id
-             AND (c.user.id = :userId OR c.user IS NULL)
-           """)
-    Optional<Category> findByIdAndUserIdOrGlobal(@Param("id") String id,
-                                                 @Param("userId") String userId);
-
-    // Sửa/xoá: chỉ cho phép category của user
-    @Query("""
-           SELECT c
-           FROM Category c
-           WHERE c.id = :id
-             AND c.user.id = :userId
-           """)
-    Optional<Category> findByIdAndUserId(@Param("id") String id,
-                                         @Param("userId") String userId);
+    List<Category> findByUpdatedAtAfter(@Param("since") Instant since);
 }

@@ -8,6 +8,7 @@ import org.befinmate.dto.request.TransactionSyncItemRequest;
 import org.befinmate.dto.request.TransactionSyncRequest;
 import org.befinmate.dto.response.TransactionResponse;
 import org.befinmate.dto.response.TransactionSyncResponse;
+import org.befinmate.common.enums.TransactionType;
 import org.befinmate.entity.*;
 import org.befinmate.transaction.repository.TransactionRepository;
 import org.befinmate.transaction.service.TransactionService;
@@ -45,7 +46,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Category getCategoryIfValid(String userId, String categoryId) {
         if (categoryId == null) return null;
-        return categoryRepository.findByIdAndUserIdOrGlobal(categoryId, userId)
+        // ✅ Categories giờ là global, không cần check userId
+        return categoryRepository.findById(categoryId)
+                .filter(c -> !c.isDeleted()) // Chỉ lấy category chưa bị xóa
                 .orElseThrow(() -> new IllegalArgumentException("Category not found or not accessible"));
     }
 
@@ -54,7 +57,8 @@ public class TransactionServiceImpl implements TransactionService {
                 .id(t.getId())
                 .walletId(t.getWallet() != null ? t.getWallet().getId() : null)
                 .categoryId(t.getCategory() != null ? t.getCategory().getId() : null)
-                .type(t.getType())
+                .categoryName(t.getCategory() != null ? t.getCategory().getName() : null) // ✅ Thêm categoryName
+                .type(t.getType() != null ? t.getType().name() : null)
                 .amount(t.getAmount())
                 .currency(t.getCurrency())
                 .occurredAt(t.getOccurredAt())
@@ -120,14 +124,14 @@ public class TransactionServiceImpl implements TransactionService {
                 .user(user)
                 .wallet(wallet)
                 .category(category)
-                .type(request.getType())
+                .type(TransactionType.valueOf(request.getType()))
                 .amount(request.getAmount())
                 .currency(request.getCurrency())
                 .occurredAt(request.getOccurredAt())
                 .note(request.getNote())
                 .transferRefId(request.getTransferRefId())
-                .deleted(false)
                 .build();
+        tx.setDeleted(false);
 
         Transaction saved = transactionRepository.save(tx);
         return toResponse(saved);
@@ -147,7 +151,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         tx.setWallet(wallet);
         tx.setCategory(category);
-        tx.setType(request.getType());
+        tx.setType(TransactionType.valueOf(request.getType()));
         tx.setAmount(request.getAmount());
         tx.setCurrency(request.getCurrency());
         tx.setOccurredAt(request.getOccurredAt());
@@ -217,16 +221,23 @@ public class TransactionServiceImpl implements TransactionService {
             }
 
             if (tx == null) {
+                // Kiểm tra các trường bắt buộc khi tạo mới
+                if (item.getWalletId() == null || item.getType() == null || 
+                    item.getCurrency() == null || item.getOccurredAt() == null) {
+                    continue; // Bỏ qua nếu thiếu trường bắt buộc khi tạo mới
+                }
                 tx = new Transaction();
                 tx.setId(item.getId() != null ? item.getId() : UUID.randomUUID().toString());
                 tx.setUser(user);
-                tx.setAmount(BigDecimal.ZERO);
+                tx.setAmount(item.getAmount() != null ? item.getAmount() : BigDecimal.ZERO);
             }
 
             // Wallet & Category check
             if (item.getWalletId() != null) {
                 Wallet wallet = getWalletOrThrow(userId, item.getWalletId());
                 tx.setWallet(wallet);
+            } else if (tx.getWallet() == null) {
+                continue; // Bỏ qua nếu không có wallet (required field)
             }
 
             if (item.getCategoryId() != null) {
@@ -236,16 +247,26 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Last-write-wins đơn giản: luôn ghi đè nếu có giá trị mới
             if (item.getType() != null) {
-                tx.setType(item.getType());
+                try {
+                    tx.setType(TransactionType.valueOf(item.getType()));
+                } catch (IllegalArgumentException e) {
+                    continue; // Bỏ qua nếu type không hợp lệ
+                }
+            } else if (tx.getType() == null) {
+                continue; // Bỏ qua nếu không có type (required field)
             }
             if (item.getAmount() != null) {
                 tx.setAmount(item.getAmount());
             }
             if (item.getCurrency() != null) {
                 tx.setCurrency(item.getCurrency());
+            } else if (tx.getCurrency() == null) {
+                continue; // Bỏ qua nếu không có currency (required field)
             }
             if (item.getOccurredAt() != null) {
                 tx.setOccurredAt(item.getOccurredAt());
+            } else if (tx.getOccurredAt() == null) {
+                continue; // Bỏ qua nếu không có occurredAt (required field)
             }
             if (item.getNote() != null) {
                 tx.setNote(item.getNote());

@@ -9,12 +9,14 @@ import org.befinmate.dto.request.LoginRequest;
 import org.befinmate.dto.request.RefreshTokenRequest;
 import org.befinmate.dto.request.RegisterRequest;
 import org.befinmate.dto.response.TokenResponse;
+import org.befinmate.dto.response.UserInfoResponse;
 import org.befinmate.entity.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,10 +36,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
+        // Lưu đầy đủ thông tin từ request
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER) // default
+                .fullName(request.getFullName()) // Lưu đúng giá trị được gửi lên từ frontend
+                .avatarUrl(request.getAvatarUrl()) // Lưu đúng giá trị được gửi lên từ frontend
+                .enabled(true)
                 .build();
 
         user = userRepository.save(user);
@@ -51,7 +57,7 @@ public class AuthController {
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
 
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail(),
                             request.getPassword()
@@ -74,5 +80,21 @@ public class AuthController {
     public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         TokenResponse tokens = tokenService.refreshToken(request);
         return ResponseEntity.ok(tokens);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserInfoResponse> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        UserInfoResponse response = UserInfoResponse.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+        
+        return ResponseEntity.ok(response);
     }
 }
