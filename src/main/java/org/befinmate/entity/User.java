@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.befinmate.common.enums.Role;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -35,6 +36,9 @@ public class User extends BaseEntity {
 
     @Column(name = "avatar_url", length = 1024)
     private String avatarUrl;
+
+    @Column(name = "birthday")
+    private LocalDate birthday;
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;

@@ -17,4 +17,6 @@ public class RegisterRequest {
     private String fullName;
 
     private String avatarUrl;
+
+    private String birthday; // Format: yyyy-MM-dd hoặc null
 }

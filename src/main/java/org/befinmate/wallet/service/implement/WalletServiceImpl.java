@@ -82,12 +82,18 @@ public class WalletServiceImpl implements WalletService {
     public WalletResponse createWallet(String userId, WalletRequest request) {
         User user = getUserOrThrow(userId);
 
+        // ✅ Đảm bảo initialBalance không null
+        BigDecimal initialBalance = request.getInitialBalance() != null 
+                ? request.getInitialBalance() 
+                : BigDecimal.ZERO;
+
         Wallet wallet = Wallet.builder()
                 .user(user)
                 .name(request.getName())
                 .type(request.getType())
                 .currency(request.getCurrency())
-                .initialBalance(request.getInitialBalance())
+                .initialBalance(initialBalance)
+                .currentBalance(initialBalance) // ✅ Set currentBalance = initialBalance khi tạo mới
                 .archived(Boolean.TRUE.equals(request.getArchived()))
                 .color(request.getColor())
                 .build();
@@ -172,45 +178,58 @@ public class WalletServiceImpl implements WalletService {
         }
 
         for (WalletSyncItemRequest item : request.getItems()) {
+            try {
+                Wallet wallet = null;
 
-            Wallet wallet = null;
-
-            if (item.getId() != null) {
-                wallet = walletRepository.findByIdAndUserId(item.getId(), userId).orElse(null);
-            }
-
-            // nếu chưa có -> tạo mới
-            if (wallet == null) {
-                wallet = new Wallet();
-                wallet.setId(item.getId() != null ? item.getId() : UUID.randomUUID().toString());
-                wallet.setUser(user);
-                // default
-                wallet.setInitialBalance(BigDecimal.ZERO);
-                // Đảm bảo name không null khi tạo mới (required field)
-                if (item.getName() == null || item.getName().trim().isEmpty()) {
-                    continue; // Bỏ qua item nếu thiếu name khi tạo mới
+                if (item.getId() != null) {
+                    wallet = walletRepository.findByIdAndUserId(item.getId(), userId).orElse(null);
                 }
-            }
 
-            // last-write-wins đơn giản:
-            // nếu muốn cứng hơn, có thể so sánh item.updatedAt với wallet.updatedAt
-            if (item.getName() != null) {
-                wallet.setName(item.getName());
-            } else if (wallet.getName() == null) {
-                continue; // Bỏ qua nếu cả item và wallet đều không có name
-            }
-            wallet.setType(item.getType() != null ? item.getType() : wallet.getType());
-            wallet.setCurrency(item.getCurrency() != null ? item.getCurrency() : wallet.getCurrency());
-            if (item.getInitialBalance() != null) {
-                wallet.setInitialBalance(item.getInitialBalance());
-            }
-            if (item.getArchived() != null) {
-                wallet.setArchived(item.getArchived());
-            }
-            wallet.setColor(item.getColor() != null ? item.getColor() : wallet.getColor());
-            wallet.setDeleted(item.isDeleted());
+                // nếu chưa có -> tạo mới
+                if (wallet == null) {
+                    wallet = new Wallet();
+                    wallet.setId(item.getId() != null ? item.getId() : UUID.randomUUID().toString());
+                    wallet.setUser(user);
+                    // default
+                    wallet.setInitialBalance(BigDecimal.ZERO);
+                    wallet.setCurrentBalance(BigDecimal.ZERO); // ✅ Set currentBalance = 0 khi tạo mới
+                    wallet.setDeleted(false); // ✅ Set deleted = false khi tạo mới
+                    // Đảm bảo name không null khi tạo mới (required field)
+                    if (item.getName() == null || item.getName().trim().isEmpty()) {
+                        System.err.println("Skipping wallet sync: name is required but not provided");
+                        continue; // Bỏ qua item nếu thiếu name khi tạo mới
+                    }
+                }
 
-            walletRepository.save(wallet);
+                // last-write-wins đơn giản:
+                // nếu muốn cứng hơn, có thể so sánh item.updatedAt với wallet.updatedAt
+                if (item.getName() != null) {
+                    wallet.setName(item.getName());
+                } else if (wallet.getName() == null) {
+                    System.err.println("Skipping wallet sync: name is required but not provided");
+                    continue; // Bỏ qua nếu cả item và wallet đều không có name
+                }
+                wallet.setType(item.getType() != null ? item.getType() : wallet.getType());
+                wallet.setCurrency(item.getCurrency() != null ? item.getCurrency() : wallet.getCurrency());
+                if (item.getInitialBalance() != null) {
+                    wallet.setInitialBalance(item.getInitialBalance());
+                }
+                if (item.getArchived() != null) {
+                    wallet.setArchived(item.getArchived());
+                }
+                wallet.setColor(item.getColor() != null ? item.getColor() : wallet.getColor());
+                wallet.setDeleted(item.isDeleted());
+
+                // ✅ Lưu wallet vào DB
+                walletRepository.save(wallet);
+                
+            } catch (Exception e) {
+                // ✅ Catch mọi exception để không rollback toàn bộ sync
+                // Log lỗi nhưng tiếp tục xử lý các item khác
+                System.err.println("Error syncing wallet item: " + e.getMessage());
+                e.printStackTrace();
+                // Tiếp tục với item tiếp theo
+            }
         }
 
         // Trả lại list wallet hiện tại cho client (anh có thể tối ưu chỉ trả những cái vừa sync)
@@ -218,6 +237,11 @@ public class WalletServiceImpl implements WalletService {
         List<WalletResponse> responses = wallets.stream()
                 .map(this::toResponse)
                 .toList();
+
+        // ✅ Log sau khi sync xong
+        System.out.println("Wallet sync completed for userId: " + userId + 
+                ", received items: " + (request.getItems() != null ? request.getItems().size() : 0) + 
+                ", total wallets in DB: " + responses.size());
 
         return WalletSyncResponse.builder()
                 .items(responses)
