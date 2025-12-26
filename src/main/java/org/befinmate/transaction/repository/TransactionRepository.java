@@ -52,4 +52,12 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
            """)
     List<Transaction> findByUserIdAndUpdatedAtAfter(@Param("userId") String userId,
                                                     @Param("since") Instant since);
+
+    @Query("""
+           SELECT t
+           FROM Transaction t
+           WHERE t.wallet.id = :walletId
+             AND t.deleted = false
+           """)
+    List<Transaction> findByWalletIdAndDeletedFalse(@Param("walletId") String walletId);
 }

@@ -10,6 +10,7 @@ public class UserInfoResponse {
     private String email;
     private String fullName;
     private String avatarUrl;
+    private String birthday; // Format: yyyy-MM-dd hoặc null
 }
 
 

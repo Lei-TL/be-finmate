@@ -8,15 +8,15 @@ import java.time.Instant;
 @Data
 public class TransactionSyncItemRequest {
 
-    private String id;          // client có thể tự sinh hoặc null
+    private String id;
 
-    private Instant updatedAt;  // timestamp local phía client (để dành last-write-wins sau này)
+    private Instant updatedAt;
 
     private boolean deleted;
 
     private String walletId;
     private String categoryId;
-    private String type;        // INCOME / EXPENSE / TRANSFER
+    private String type;
     private BigDecimal amount;
     private String currency;
     private Instant occurredAt;
